@@ -1,0 +1,63 @@
+---
+
+version : "3.3"
+
+networks:
+  public:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.100.0/24
+  private:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.200.0/24
+  backup:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.254.0/24
+
+services:
+  primary:
+    build: ./nginx
+    container_name: nginx_primary
+    ports:
+      - "80"
+    networks:
+      private:
+        ipv4_address: 192.168.200.101
+  backup:
+    build: ./backup
+    container_name: nginx_backup
+    ports:
+      - "80"
+    networks:
+      private:
+        ipv4_address: 192.168.200.102
+  backup_az:
+    build: ./backup2
+    ports:
+      - "80"
+    container_name: nginx_backup_az
+    networks:
+      backup:
+        ipv4_address: 192.168.254.101
+        aliases: 
+          - nginx_backup
+  proxy: 
+    build: ./proxy
+    ports:
+      - "8080:80"
+    networks:
+      public:
+        ipv4_address: 192.168.100.100
+      private:
+         ipv4_address: 192.168.200.100
+      backup:
+         ipv4_address: 192.168.254.100
+
+    
+
+
